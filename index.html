@@ -102,6 +102,8 @@
   .pad button:active{background:rgba(255,179,199,.35); transform:scale(.94)}
   .pad button.util{font-size:.95rem; color:var(--ink-dim)}
   .hint-line{text-align:center; color:var(--ink-dim); font-size:.85rem; margin-top:18px}
+  .sender-hint{text-align:center; color:var(--ink-dim); font-size:.83rem; line-height:1.55; margin:10px 0 0; opacity:.92}
+  .sender-hint.in-modal{text-align:left; margin-top:8px; font-size:.82rem}
 
   /* ---------- modal ---------- */
   .overlay{position:fixed; inset:0; z-index:80; background:rgba(2,3,12,.8); display:none; align-items:center; justify-content:center; padding:18px}
@@ -200,6 +202,13 @@
   .del-btn{flex:0 0 auto; border-radius:999px; border:1px solid rgba(255,157,157,.5); background:rgba(255,157,157,.12); color:var(--danger); padding:6px 14px; font-size:.85rem; min-height:38px}
   .owner-empty{color:var(--ink-dim); font-size:.9rem; margin-top:8px}
 
+  /* ---------- make-it-yours setup ---------- */
+  .setup-label{display:block; margin:16px 0 6px; font-size:.95rem; color:var(--gold-soft); font-family:"Fredoka","Padauk",sans-serif}
+  .setup-wish-row{display:flex; align-items:flex-start; gap:10px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:10px 12px; margin-top:8px}
+  .setup-wish-row span{flex:1; line-height:1.6; color:var(--ink); font-size:.95rem; word-break:break-word}
+  .setup-remove{flex:0 0 auto; width:38px; height:38px; min-height:38px; border-radius:50%; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.06); color:var(--ink-dim); font-size:1.05rem; line-height:1; padding:0}
+  .setup-link-box{margin-top:16px; background:rgba(155,231,216,.08); border:1px solid rgba(155,231,216,.35); border-radius:14px; padding:12px}
+
   @media (max-width:430px){
     .star-map{height:440px}
     .game-sky{height:430px}
@@ -261,6 +270,11 @@
     </div>
     <p class="code-msg" id="codeMsg" data-i18n="codePrompt">Launch code · ဂဏန်း ၄ လုံး</p>
     <div class="pad" id="pad" role="group" aria-label="Launch code keypad"></div>
+    <p class="sender-hint" data-i18n="senderCodeHint">Enter the code the person who sent you this link told you</p>
+    <div class="row-btns">
+      <button class="ghost-btn" id="makeYoursBtn" type="button">✦ <span data-i18n="makeYoursBtn">Make this gift yours</span></button>
+    </div>
+    <p class="hint-line" data-i18n="makeYoursHint">Sending this to someone you love? Set your own code and wishes first.</p>
   </section>
 
   <!-- 2 · STAR MAP -->
@@ -368,6 +382,32 @@
   </div>
 </div>
 
+<!-- make-it-yours setup modal : any sender sets their OWN code + wishes -->
+<div class="overlay" id="setupOverlay" role="dialog" aria-modal="true">
+  <div class="card">
+    <h3 data-i18n="setupTitle">Make this gift yours</h3>
+    <p data-i18n="setupDesc">Set your own 4-digit code, write your wish(es), then copy the ready-to-send gift link below. Whoever opens that link can only read your wishes after entering your code.</p>
+    <label class="setup-label" for="setupCodeInput" data-i18n="setupCodeLabel">1 · Your own passcode (4 digits)</label>
+    <input class="field" id="setupCodeInput" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="1234" aria-label="Your passcode" />
+    <label class="setup-label" for="setupWishInput" data-i18n="setupWishLabel">2 · Your wish</label>
+    <textarea class="field" id="setupWishInput" maxlength="140" data-i18n-ph="setupWishPh" placeholder="Write a wish for them…"></textarea>
+    <div class="row-btns" style="margin-top:10px">
+      <button class="pink-btn" id="setupAddWishBtn" type="button">★ <span data-i18n="setupAddWish">Add this wish</span></button>
+    </div>
+    <div id="setupWishList"></div>
+    <p class="mini-msg" id="setupMsg"></p>
+    <label class="setup-label" data-i18n="setupLinkLabel">3 · Your gift link — copy and send it</label>
+    <div class="setup-link-box">
+      <p class="share-link" id="setupLinkText"></p>
+      <button class="gold-btn" id="setupCopyBtn" type="button" style="width:100%">⧉ <span data-i18n="setupCopy">Copy gift link</span></button>
+      <p class="mini-msg" id="setupCopyMsg"></p>
+    </div>
+    <div class="row-btns" style="margin-top:12px">
+      <button class="ghost-btn" id="setupClose" type="button"><span data-i18n="closeBtn">Close</span></button>
+    </div>
+  </div>
+</div>
+
 <!-- wish unlock modal -->
 <div class="overlay" id="wishOverlay" role="dialog" aria-modal="true">
   <div class="card">
@@ -375,6 +415,7 @@
     <div id="wishAskBox">
       <p data-i18n="wishAskDesc">ဒီ ဆုတောင်းကို ဖတ်ဖို့ launch code ရိုက်ပါ။</p>
       <input class="field" id="wishCodeInput" inputmode="numeric" autocomplete="off" maxlength="4" placeholder="••••" aria-label="Launch code" />
+      <p class="sender-hint in-modal" data-i18n="senderCodeHint">Enter the code the person who sent you this link told you</p>
       <p class="mini-msg" id="wishCodeMsg"></p>
       <div class="row-btns" style="margin-top:10px">
         <button class="gold-btn" id="wishRevealBtn" type="button"><span data-i18n="wishReveal">ဆုတောင်း ဖတ်မယ်</span></button>
@@ -569,6 +610,7 @@ var STRINGS = {
     launchKicker:"A gift written in the stars",
     launchSub:"I prepared a little journey for you. Enter the launch code to lift off.",
     codePrompt:"Launch code · 4 digits",
+    senderCodeHint:"Enter the code the person who sent you this link told you",
     codeWrong:"That code is not the one. Try again.",
     codeOk:"Code accepted — launching!",
     mapTitle:"Star Map", memoriesWord:"Memories",
@@ -610,13 +652,30 @@ var STRINGS = {
     wishAskDesc:"Enter the launch code to read this wish. Only someone who knows the code can see it.",
     wishReveal:"Read the wish",
     wishWrong:"Wrong code — the wish stays locked.",
-    wishLockedMsg:"🔒 Wish — your wish is now a star. Tap the star and enter the code to read it."
+    wishLockedMsg:"🔒 Wish — your wish is now a star. Tap the star and enter the code to read it.",
+    makeYoursBtn:"Make this gift yours",
+    makeYoursHint:"Sending this to someone you love? Set your own code and wishes first.",
+    setupTitle:"Make this gift yours",
+    setupDesc:"Set your own 4-digit code, write your wish(es), then copy the ready-to-send gift link below. Whoever opens that link can only read your wishes after entering your code.",
+    setupCodeLabel:"1 · Your own passcode (4 digits)",
+    setupWishLabel:"2 · Your wish",
+    setupWishPh:"Write a wish for them…",
+    setupAddWish:"Add this wish",
+    setupLinkLabel:"3 · Your gift link — copy and send it",
+    setupCopy:"Copy gift link",
+    setupCopied:"Gift link copied! Send it to them.",
+    setupCopyFail:"Copy failed — long-press the link to copy it.",
+    setupCodeInvalid:"Enter exactly 4 digits for your passcode first.",
+    setupWishEmpty:"Write a wish first, then add it.",
+    setupNoWishes:"No wishes added yet — your link will carry your code only.",
+    setupLinkWait:"Enter your 4-digit passcode above and your gift link will appear here."
   },
   mm: {
     stLaunch:"စတင်", stMap:"အမှတ်တရ", stGame:"ကြယ်ဖမ်း", stWish:"ဆုတောင်း", stFinale:"ထာဝရ",
     launchKicker:"မင်း တစ်ယောက် အတွက်ပဲ လုပ်ထားတဲ့ လက်ဆောင်",
     launchSub:"မင်းအတွက် ခရီးစဉ်လေး တစ်ခု ပြင်ထားတယ်။ ပျံသန်းဖို့ launch code ရိုက်ထည့်ပါ။",
     codePrompt:"Launch code · ဂဏန်း ၄ လုံး",
+    senderCodeHint:"Link ပေးသူ ပြောထားတဲ့ code ကို ထည့်ပါ",
     codeWrong:"Code မမှန်ဘူး။ ပြန် ကြိုးစားကြည့်ပါ။",
     codeOk:"Code မှန်ပြီ — ပျံသန်းနေပြီ!",
     mapTitle:"ကြယ်မြေပုံ", memoriesWord:"အမှတ်တရ",
@@ -658,7 +717,23 @@ var STRINGS = {
     wishAskDesc:"ဒီ ဆုတောင်းကို ဖတ်ဖို့ launch code ရိုက်ပါ။ Code သိတဲ့ သူပဲ မြင်ရမယ်။",
     wishReveal:"ဆုတောင်း ဖတ်မယ်",
     wishWrong:"Code မမှန်ဘူး — ဆုတောင်း မပွင့်ဘူး။",
-    wishLockedMsg:"🔒 ဆုတောင်း — မင်းရဲ့ ဆုတောင်းက ကြယ် ဖြစ်သွားပြီ။ ဖတ်ချင်ရင် ကြယ်ကို နှိပ်ပြီး code ရိုက်ပါ။"
+    wishLockedMsg:"🔒 ဆုတောင်း — မင်းရဲ့ ဆုတောင်းက ကြယ် ဖြစ်သွားပြီ။ ဖတ်ချင်ရင် ကြယ်ကို နှိပ်ပြီး code ရိုက်ပါ။",
+    makeYoursBtn:"ကိုယ်ပိုင် လက်ဆောင် လုပ်မယ်",
+    makeYoursHint:"ချစ်ရသူ တစ်ယောက်ကို ပို့မှာလား? ကိုယ့် code နဲ့ ကိုယ့် ဆုတောင်းကို အရင် ထားလိုက်ပါ။",
+    setupTitle:"ကိုယ်ပိုင် လက်ဆောင် လုပ်မယ်",
+    setupDesc:"ကိုယ်ပိုင် ဂဏန်း ၄ လုံး code ထားပါ၊ ကိုယ့် ဆုတောင်းတွေ ရေးပါ၊ ပြီးရင် အောက်က ပို့ဖို့ အဆင်သင့် လက်ဆောင် link ကို ကူးပြီး ပို့လိုက်ပါ။ အဲဒီ link ကို ဖွင့်တဲ့သူက ကိုယ့် code ရိုက်မှ ကိုယ့် ဆုတောင်းတွေကို ဖတ်လို့ ရမယ်။",
+    setupCodeLabel:"၁ · ကိုယ်ပိုင် passcode (ဂဏန်း ၄ လုံး)",
+    setupWishLabel:"၂ · ကိုယ့် ဆုတောင်း",
+    setupWishPh:"သူ့အတွက် ဆုတောင်းလေး ရေးပါ…",
+    setupAddWish:"ဒီ ဆုတောင်း ထည့်မယ်",
+    setupLinkLabel:"၃ · ကိုယ့် လက်ဆောင် link — ကူးပြီး ပို့လိုက်ပါ",
+    setupCopy:"လက်ဆောင် link ကူးမယ်",
+    setupCopied:"လက်ဆောင် link ကူးပြီးပြီ! သူ့ဆီ ပို့လိုက်ပါ။",
+    setupCopyFail:"ကူးလို့ မရဘူး — link ကို ကြာကြာ နှိပ်ပြီး ကူးပါ။",
+    setupCodeInvalid:"Passcode အတွက် ဂဏန်း ၄ လုံး အတိအကျ အရင် ရိုက်ပါ။",
+    setupWishEmpty:"ဆုတောင်း အရင် ရေးပြီးမှ ထည့်ပါ။",
+    setupNoWishes:"ဆုတောင်း မထည့်ရသေးဘူး — link ထဲမှာ code ပဲ ပါသွားမယ်။",
+    setupLinkWait:"အပေါ်မှာ ဂဏန်း ၄ လုံး passcode ရိုက်ရင် လက်ဆောင် link ဒီမှာ ပေါ်လာမယ်။"
   }
 };
 
@@ -950,6 +1025,100 @@ $("#copyLinkBtn").addEventListener("click", function(){
     } catch(e){ done(false); }
   }
 });
+
+/* ---------------- make-it-yours setup (any sender, own key) ----------------
+   A sender sets their OWN 4-digit passcode and writes their OWN wishes.
+   The gift link carries ?code=<their code>&wishes=<base64url>, reusing the
+   same unlock mechanism as the owner link: the recipient enters THAT code
+   to launch, and the wishes stay hidden behind a code prompt until then.
+   This setup is fully separate from the owner panel: it never reads the
+   owner's saved wishes, never shows shared wishes, and offers no delete
+   of stored wishes and no text editing. Draft wishes below live only in
+   this modal until the sender copies the link. */
+var setupOverlay = $("#setupOverlay");
+var setupWishes = [];
+/* The gift link is built on the site's public address — the link the owner
+   actually shares — never on whatever address the sender happens to be
+   viewing the page through, so recipients always get the clean public link. */
+var GIFT_PUBLIC_URL = "https://sirkhant2713.github.io/our-universe-cartoon-edition/";
+function setupBaseUrl(){
+  return GIFT_PUBLIC_URL;
+}
+function renderSetupWishList(){
+  var box = $("#setupWishList"); if(!box) return;
+  box.innerHTML = "";
+  if(!setupWishes.length){
+    var p = document.createElement("p"); p.className = "owner-empty"; p.textContent = t("setupNoWishes");
+    box.appendChild(p); return;
+  }
+  setupWishes.forEach(function(text, i){
+    var row = document.createElement("div"); row.className = "setup-wish-row";
+    var span = document.createElement("span"); span.textContent = "★ " + text;
+    var rm = document.createElement("button");
+    rm.type = "button"; rm.className = "setup-remove"; rm.textContent = "×";
+    rm.setAttribute("aria-label", "Remove draft wish");
+    rm.addEventListener("click", function(){ setupWishes.splice(i, 1); renderSetupWishList(); refreshSetupLink(); });
+    row.appendChild(span); row.appendChild(rm);
+    box.appendChild(row);
+  });
+}
+function refreshSetupLink(){
+  var code = ($("#setupCodeInput").value || "").trim();
+  var el = $("#setupLinkText"); if(!el) return;
+  if(!/^\d{4}$/.test(code)){ el.textContent = t("setupLinkWait"); return; }
+  var link = setupBaseUrl() + "?code=" + code;
+  if(setupWishes.length) link += "&wishes=" + encodeWishList(setupWishes.map(function(x){ return { text:x }; }));
+  el.textContent = link;
+}
+function openSetup(){
+  sndTap();
+  $("#setupMsg").textContent = ""; $("#setupMsg").classList.remove("err");
+  $("#setupCopyMsg").textContent = "";
+  renderSetupWishList();
+  refreshSetupLink();
+  setupOverlay.classList.add("open");
+  setTimeout(function(){ try { $("#setupCodeInput").focus(); } catch(e){} }, 60);
+}
+$("#makeYoursBtn").addEventListener("click", openSetup);
+$("#setupClose").addEventListener("click", function(){ setupOverlay.classList.remove("open"); });
+setupOverlay.addEventListener("click", function(e){ if(e.target === setupOverlay) setupOverlay.classList.remove("open"); });
+$("#setupCodeInput").addEventListener("input", function(){
+  this.value = (this.value || "").replace(/\D/g, "").slice(0, 4);
+  $("#setupMsg").textContent = ""; $("#setupMsg").classList.remove("err");
+  refreshSetupLink();
+});
+$("#setupAddWishBtn").addEventListener("click", function(){
+  var code = ($("#setupCodeInput").value || "").trim();
+  var m = $("#setupMsg");
+  if(!/^\d{4}$/.test(code)){ m.textContent = t("setupCodeInvalid"); m.classList.add("err"); sndErr(); $("#setupCodeInput").focus(); return; }
+  var input = $("#setupWishInput"), text = (input.value || "").trim();
+  if(!text){ m.textContent = t("setupWishEmpty"); m.classList.add("err"); sndErr(); input.focus(); return; }
+  setupWishes.push(text);
+  input.value = "";
+  m.textContent = ""; m.classList.remove("err");
+  renderSetupWishList(); refreshSetupLink();
+  sndWish(); vibrate(40);
+});
+$("#setupCopyBtn").addEventListener("click", function(){
+  var code = ($("#setupCodeInput").value || "").trim();
+  var cm = $("#setupCopyMsg"), m = $("#setupMsg");
+  if(!/^\d{4}$/.test(code)){ m.textContent = t("setupCodeInvalid"); m.classList.add("err"); cm.textContent = ""; sndErr(); return; }
+  refreshSetupLink();
+  var link = $("#setupLinkText").textContent;
+  function done(ok){ cm.textContent = ok ? t("setupCopied") : t("setupCopyFail"); cm.classList.toggle("err", !ok); if(ok) sndOk(); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(link).then(function(){ done(true); }, function(){ setupFallbackCopy(link, done); });
+  } else setupFallbackCopy(link, done);
+});
+function setupFallbackCopy(link, done){
+  try {
+    var ta = document.createElement("textarea");
+    ta.value = link; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    var ok = document.execCommand("copy");
+    document.body.removeChild(ta); done(!!ok);
+  } catch(e){ done(false); }
+}
 
 /* ---------------- star map ---------------- */
 var mapEl = $("#starMap");
@@ -1389,7 +1558,7 @@ $("#replayBtn").addEventListener("click", function(){
 
 /* ---------------- boot ---------------- */
 var _origApply = applyLang;
-applyLang = function(){ _origApply(); refreshPlanetNames(); renderOwnerWishList(); if(state.stage === 4) buildFinale(); };
+applyLang = function(){ _origApply(); refreshPlanetNames(); renderOwnerWishList(); renderSetupWishList(); refreshSetupLink(); if(state.stage === 4) buildFinale(); };
 applyLang();
 renderDots();
 renderHeart();
